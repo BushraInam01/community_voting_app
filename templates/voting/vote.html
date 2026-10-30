@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cast Your Vote</title>
+</head>
+<body>
+
+    <h1>{{ poll.question }}</h1>
+
+    <p>{{ poll.description }}</p>
+
+    <h2>Cast Your Vote</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">Submit Vote</button>
+    </form>
+
+    <p>
+        <a href="{% url 'polls:poll_detail' poll.slug %}">
+            Back to Poll
+        </a>
+    </p>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poll Iframe Test</title>
+</head>
+<body>
+
+    <h1>Community Poll Widget Test</h1>
+
+    <iframe
+        src="{% url 'polls:poll_embed' 'which-database-do-you-prefer-for-web-development' %}"
+        width="600"
+        height="250"
+        title="Community Poll Widget"
+        loading="lazy">
+    </iframe>
+
+</body>
+</html>

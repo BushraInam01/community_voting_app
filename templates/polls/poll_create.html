@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Poll</title>
+</head>
+<body>
+
+    <h1>Create a Poll</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <h2>Poll Details</h2>
+
+        {{ poll_form.as_p }}
+
+        <h2>Poll Options</h2>
+
+        {{ option_formset.management_form }}
+
+        {% for form in option_formset %}
+            <div>
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Create Poll</button>
+
+    </form>
+
+    <p>
+        <a href="{% url 'polls:poll_list' %}">Back to Polls</a>
+    </p>
+
+</body>
+</html>

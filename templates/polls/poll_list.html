@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Polls</title>
+</head>
+<body>
+
+    <h1>Community Voting & Polling App</h1>
+
+    <h2>All Polls</h2>
+
+    {% if polls %}
+
+        {% for poll in polls %}
+
+            <div>
+                <h3>
+                    <a href="{% url 'polls:poll_detail' poll.slug %}">
+                        {{ poll.question }}
+                    </a>
+                </h3>
+
+                <p>{{ poll.description }}</p>
+
+                <p>Voting Type: {{ poll.get_voting_type_display }}</p>
+
+                <p>
+                    Created: {{ poll.created_at }}
+                </p>
+
+                <hr>
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>No polls available yet.</p>
+
+    {% endif %}
+
+
+    {% if user.is_authenticated %}
+
+    <form method="POST" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+
+        <button type="submit">Logout</button>
+    </form>
+
+    {% endif %}
+
+</body>
+</html>

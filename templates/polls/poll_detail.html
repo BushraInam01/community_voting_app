@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ poll.question }}</title>
+
+    <link rel="stylesheet" href="{% static 'css/poll_detail.css' %}">
+</head>
+
+<body>
+
+    <div class="poll-container">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <h1>{{ poll.question }}</h1>
+
+        <p class="description">
+            {{ poll.description }}
+        </p>
+
+        <h3 class="section-title">Poll Options</h3>
+
+        {% if poll.is_expired or poll.is_frozen %}
+            <p>This poll is closed.</p>
+        {% else %}
+            <a href="{% url 'voting:poll_vote' poll.slug %}">
+                Vote Now
+            </a>
+        {% endif %}
+
+        <ul class="options-list">
+
+            {% for option in poll.options.all %}
+
+                <li class="option-item">
+                    <span class="option-number">{{ forloop.counter }}.</span>
+                    {{ option.option_text }}
+                </li>
+
+            {% empty %}
+
+                <li class="option-item">
+                    No options available.
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+        <div class="poll-info">
+
+            <p>
+                <strong>Voting Type:</strong>
+                {{ poll.get_voting_type_display }}
+            </p>
+
+            <p>
+                <strong>Created By:</strong>
+                {{ poll.created_by.username }}
+            </p>
+
+            <p>
+                <strong>Anonymous Voting:</strong>
+                {% if poll.is_anonymous %}Yes{% else %}No{% endif %}
+            </p>
+
+            <p>
+                <strong>Expires At:</strong>
+                {{ poll.expires_at }}
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                {% if poll.is_frozen %}
+                    Frozen
+                {% elif poll.is_expired %}
+                    Expired
+                {% else %}
+                    Active
+                {% endif %}
+            </p>
+
+        </div>
+
+        <a class="back-link" href="{% url 'polls:poll_list' %}">
+            &larr; Back to Polls
+        </a>
+
+    </div>
+
+</body>
+</html>

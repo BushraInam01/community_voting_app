@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ poll.question }}</title>
+</head>
+<body>
+
+    <h2>{{ poll.question }}</h2>
+
+    {% if poll.description %}
+        <p>{{ poll.description }}</p>
+    {% endif %}
+
+    <form>
+        {% for option in poll.options.all %}
+            <div>
+                <label>
+                    <input
+                        type="radio"
+                        name="poll_option"
+                        value="{{ option.id }}"
+                    >
+                    {{ option.option_text }}
+                </label>
+            </div>
+        {% empty %}
+            <p>No options available.</p>
+        {% endfor %}
+    </form>
+
+    {% if poll.is_expired or poll.is_frozen %}
+        <p>This poll is closed.</p>
+    {% else %}
+        <p>Voting is available on the poll page.</p>
+    {% endif %}
+
+</body>
+</html>

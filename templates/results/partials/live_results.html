@@ -1,0 +1,40 @@
+
+{% load percentage_tags %}
+
+{% if is_live %}
+    <h2>Live Poll Results</h2>
+{% else %}
+    <h2>Final Poll Results</h2>
+
+    <p>
+        This poll is closed. Voting is no longer available.
+    </p>
+{% endif %}
+
+<p>
+    <strong>Total Votes:</strong> {{ total_votes }}
+</p>
+
+{% for item in results %}
+
+    <div>
+        <h3>{{ item.option.option_text }}</h3>
+
+        <p>
+            Votes: {{ item.vote_count }}
+            ({{ item.percentage }}%)
+        </p>
+
+        <progress
+            value="{{ item.percentage|percentage_width }}"
+            max="100">
+        </progress>
+    </div>
+
+{% empty %}
+
+    <p>No options available.</p>
+
+{% endfor %}
+
+<hr>
