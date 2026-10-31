@@ -10,6 +10,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from . import throttle
+
 
 #Register view
 class RegisterView(View):
@@ -79,9 +81,31 @@ class LoginView(View):
             data=request.POST
         )
 
+        username = request.POST.get('username', '')
+
+        if throttle.is_locked_out(request, username):
+            messages.error(
+                request,
+                'Too many failed login attempts. Please try again later.'
+            )
+
+            context = {
+                'form': AuthenticationForm(request),
+                'next': request.POST.get('next', ''),
+            }
+
+            return render(
+                request,
+                'accounts/login.html',
+                context,
+                status=429
+            )
+
         if form.is_valid():
 
             user = form.get_user()
+
+            throttle.clear_failures(request, username)
 
             login(request, user)
 
@@ -95,6 +119,8 @@ class LoginView(View):
                 return redirect(next_url)
 
             return redirect('polls:poll_list')
+
+        throttle.record_failure(request, username)
 
         context = {
             'form': form,
