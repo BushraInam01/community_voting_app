@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,13 +14,15 @@
         <iframe
             src="{% url 'polls:poll_embed' poll.slug %}"
             width="600"
-            height="300"
+            height="220"
             title="Community Poll Widget"
             loading="lazy">
         </iframe>
     {% else %}
         <p>Create a poll first, then reload this page.</p>
     {% endif %}
+
+    <script src="{% static 'js/embed-parent.js' %}"></script>
 
 </body>
 </html>

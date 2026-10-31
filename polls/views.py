@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -56,9 +57,16 @@ class PollDetailView(View):
             reverse('polls:poll_embed', args=[poll.slug])
         )
 
+        parent_script_url = request.build_absolute_uri(
+            static('js/embed-parent.js')
+        )
+
+        # The iframe height is only a starting value; embed-parent.js resizes
+        # the iframe to fit the poll exactly.
         embed_code = (
-            f'<iframe src="{embed_url}" width="600" height="400" '
-            f'title="Community poll"></iframe>'
+            f'<iframe src="{embed_url}" width="600" height="260" '
+            f'title="Community poll"></iframe>\n'
+            f'<script async src="{parent_script_url}"></script>'
         )
 
         context = {

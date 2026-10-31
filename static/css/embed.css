@@ -1,0 +1,35 @@
+/* Compact layout for the embeddable poll widget. The page height is measured
+   by embed-resize.js, so keep margins explicit and predictable. */
+
+html,
+body {
+    margin: 0;
+}
+
+body {
+    padding: 12px;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.4;
+}
+
+h2 {
+    margin: 0 0 8px;
+    font-size: 1.15rem;
+}
+
+p {
+    margin: 0 0 8px;
+}
+
+ol {
+    margin: 0 0 10px;
+    padding-left: 1.4rem;
+}
+
+li {
+    margin-bottom: 2px;
+}
+
+body > :last-child {
+    margin-bottom: 0;
+}
