@@ -15,13 +15,21 @@
     <strong>Total Votes:</strong> {{ total_votes }}
 </p>
 
+{% if ranked %}
+    <p>
+        Ranked-choice poll. Bars show first-choice votes; the winner is
+        decided by instant runoff (see below).
+    </p>
+{% endif %}
+
 {% for item in results %}
 
     <div>
         <h3>{{ item.option.option_text }}</h3>
 
         <p>
-            Votes: {{ item.vote_count }}
+            {% if ranked %}First-choice votes{% else %}Votes{% endif %}:
+            {{ item.vote_count }}
             ({{ item.percentage }}%)
         </p>
 
@@ -36,5 +44,36 @@
     <p>No options available.</p>
 
 {% endfor %}
+
+{% if ranked and total_votes %}
+
+    <h2>Instant-runoff result</h2>
+
+    {% if ranked.is_tie %}
+        <p>
+            <strong>Tie between:</strong>
+            {% for option in ranked.winners %}{{ option.option_text }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </p>
+    {% elif ranked.winners %}
+        <p>
+            <strong>{% if is_live %}Currently leading{% else %}Winner{% endif %}:</strong>
+            {{ ranked.winners.0.option_text }}
+        </p>
+    {% endif %}
+
+    {% for round in ranked.rounds %}
+        <h3>Round {{ round.number }}</h3>
+        <ul>
+            {% for row in round.rows %}
+                <li>
+                    {{ row.option.option_text }}: {{ row.votes }}
+                    ({{ row.percentage }}%)
+                    {% if row.eliminated %}&mdash; eliminated{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+
+{% endif %}
 
 <hr>
