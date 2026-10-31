@@ -283,3 +283,69 @@ class NavigationAndSharingTests(TestCase):
         response = self.client.get(reverse('polls:poll_list'))
 
         self.assertContains(response, reverse('polls:poll_create'))
+
+
+class EmbedHeightTests(TestCase):
+    """The iframe height is calculated on the server (no JavaScript)."""
+
+    def setUp(self):
+        self.owner = make_user()
+
+    def test_height_grows_with_number_of_options(self):
+        few = make_poll(self.owner, question='Few', options=('A', 'B'))
+        many = make_poll(
+            self.owner, question='Many', options=tuple('ABCDEFGH')
+        )
+
+        self.assertEqual(many.embed_height - few.embed_height, 25 * 6)
+
+    def test_height_accounts_for_description_and_closed_state(self):
+        poll = make_poll(self.owner)
+        base = poll.embed_height
+
+        poll.description = 'Short description'
+        self.assertEqual(poll.embed_height, base + 30)
+
+        poll.is_frozen = True
+        self.assertEqual(poll.embed_height, base + 60)
+
+    def test_long_question_gets_extra_lines(self):
+        short = make_poll(self.owner, question='Short?')
+        long_ = make_poll(self.owner, question='Why ' * 40)
+
+        self.assertGreater(long_.embed_height, short.embed_height)
+
+    def test_four_option_poll_is_a_sensible_size(self):
+        poll = make_poll(self.owner, options=('A', 'B', 'C', 'D'))
+
+        # Old fixed height was 300px, which left a large blank area.
+        self.assertLess(poll.embed_height, 250)
+        self.assertGreater(poll.embed_height, 150)
+
+    def test_share_snippet_uses_calculated_height_and_no_script(self):
+        poll = make_poll(self.owner, options=('A', 'B', 'C', 'D'))
+
+        response = self.client.get(
+            reverse('polls:poll_detail', args=[poll.slug])
+        )
+
+        self.assertContains(response, f'height=&quot;{poll.embed_height}&quot;')
+        self.assertNotContains(response, '&lt;script')
+
+    def test_embed_test_page_uses_calculated_height(self):
+        poll = make_poll(self.owner)
+
+        with override_settings(DEBUG=True):
+            response = self.client.get(reverse('polls:embed_test'))
+
+        self.assertContains(response, f'height="{poll.embed_height}"')
+
+    def test_embed_page_uses_compact_css_and_no_javascript(self):
+        poll = make_poll(self.owner)
+
+        response = self.client.get(
+            reverse('polls:poll_embed', args=[poll.slug])
+        )
+
+        self.assertContains(response, '/static/css/embed.css')
+        self.assertNotContains(response, '<script')

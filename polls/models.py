@@ -53,6 +53,29 @@ class Poll(models.Model):
     def is_closed(self):
         return self.is_frozen or self.is_expired
 
+    @property
+    def embed_height(self):
+        """Iframe height in pixels that fits the embed widget without a
+        large blank area or a scrollbar.
+
+        The numbers match static/css/embed.css (about 25px per option line,
+        plus the title, padding and the closing link) with a small safety
+        margin. If you change that stylesheet, adjust the numbers here.
+        """
+
+        height = 110 + 25 * len(self.options.all())
+
+        if self.description:
+            height += 30 + 22 * ((len(self.description) - 1) // 70)
+
+        if self.is_closed:
+            height += 30
+
+        # A long question wraps onto extra lines.
+        height += 22 * ((len(self.question) - 1) // 60)
+
+        return height
+
     def __str__(self):
         return self.question
 

@@ -57,8 +57,8 @@ class PollDetailView(View):
         )
 
         embed_code = (
-            f'<iframe src="{embed_url}" width="600" height="400" '
-            f'title="Community poll"></iframe>'
+            f'<iframe src="{embed_url}" width="600" '
+            f'height="{poll.embed_height}" title="Community poll"></iframe>'
         )
 
         context = {

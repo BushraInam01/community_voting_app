@@ -13,7 +13,7 @@
         <iframe
             src="{% url 'polls:poll_embed' poll.slug %}"
             width="600"
-            height="300"
+            height="{{ poll.embed_height }}"
             title="Community Poll Widget"
             loading="lazy">
         </iframe>
