@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
+from django.conf import settings
 from django.utils import timezone
 
 from .models import Poll, PollOption
@@ -38,6 +39,13 @@ class PollForm(forms.ModelForm):
                 }
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['expires_at'].help_text = (
+            f'Time zone: {settings.TIME_ZONE}'
+        )
 
     def clean_expires_at(self):
 

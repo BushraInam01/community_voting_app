@@ -9,13 +9,17 @@
 
     <h1>Community Poll Widget Test</h1>
 
-    <iframe
-        src="{% url 'polls:poll_embed' 'which-database-do-you-prefer-for-web-development' %}"
-        width="600"
-        height="250"
-        title="Community Poll Widget"
-        loading="lazy">
-    </iframe>
+    {% if poll %}
+        <iframe
+            src="{% url 'polls:poll_embed' poll.slug %}"
+            width="600"
+            height="300"
+            title="Community Poll Widget"
+            loading="lazy">
+        </iframe>
+    {% else %}
+        <p>Create a poll first, then reload this page.</p>
+    {% endif %}
 
 </body>
 </html>

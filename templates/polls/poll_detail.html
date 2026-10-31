@@ -38,6 +38,13 @@
             </a>
         {% endif %}
 
+        {% if can_close %}
+            <form method="POST" action="{% url 'polls:poll_close' poll.slug %}">
+                {% csrf_token %}
+                <button type="submit">Close this poll</button>
+            </form>
+        {% endif %}
+
         <ul class="options-list">
 
             {% for option in poll.options.all %}

@@ -13,27 +13,27 @@
         <p>{{ poll.description }}</p>
     {% endif %}
 
-    <form>
+    <ol>
         {% for option in poll.options.all %}
-            <div>
-                <label>
-                    <input
-                        type="radio"
-                        name="poll_option"
-                        value="{{ option.id }}"
-                    >
-                    {{ option.option_text }}
-                </label>
-            </div>
+            <li>{{ option.option_text }}</li>
         {% empty %}
-            <p>No options available.</p>
+            <li>No options available.</li>
         {% endfor %}
-    </form>
+    </ol>
 
     {% if poll.is_expired or poll.is_frozen %}
         <p>This poll is closed.</p>
+        <p>
+            <a href="{% url 'results:poll_results' poll.slug %}" target="_blank" rel="noopener">
+                View results
+            </a>
+        </p>
     {% else %}
-        <p>Voting is available on the poll page.</p>
+        <p>
+            <a href="{% url 'voting:poll_vote' poll.slug %}" target="_blank" rel="noopener">
+                Vote on the poll page
+            </a>
+        </p>
     {% endif %}
 
 </body>

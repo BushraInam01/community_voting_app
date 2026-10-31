@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from autoslug import AutoSlugField
 
+from .slugs import poll_slugify
+
 
 class Poll(models.Model):
 
@@ -19,7 +21,8 @@ class Poll(models.Model):
         populate_from='question',
         unique=True,
         max_length=255,
-        always_update=False
+        always_update=False,
+        slugify=poll_slugify
     )
 
     created_by = models.ForeignKey(
@@ -46,6 +49,10 @@ class Poll(models.Model):
     def is_expired(self):
         return timezone.now() >= self.expires_at
 
+    @property
+    def is_closed(self):
+        return self.is_frozen or self.is_expired
+
     def __str__(self):
         return self.question
 
@@ -61,6 +68,9 @@ class PollOption(models.Model):
     option_text = models.CharField(max_length=255)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return self.option_text
