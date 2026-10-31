@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -47,8 +48,23 @@ class PollDetailView(View):
             slug=slug
         )
 
+        share_url = request.build_absolute_uri(
+            reverse('polls:poll_detail', args=[poll.slug])
+        )
+
+        embed_url = request.build_absolute_uri(
+            reverse('polls:poll_embed', args=[poll.slug])
+        )
+
+        embed_code = (
+            f'<iframe src="{embed_url}" width="600" height="400" '
+            f'title="Community poll"></iframe>'
+        )
+
         context = {
             'poll': poll,
+            'share_url': share_url,
+            'embed_code': embed_code,
             'can_close': (
                 request.user.is_authenticated
                 and request.user == poll.created_by

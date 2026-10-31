@@ -38,6 +38,12 @@
             </a>
         {% endif %}
 
+        <p>
+            <a href="{% url 'results:poll_results' poll.slug %}">
+                View live results
+            </a>
+        </p>
+
         {% if can_close %}
             <form method="POST" action="{% url 'polls:poll_close' poll.slug %}">
                 {% csrf_token %}
@@ -95,6 +101,33 @@
                 {% else %}
                     Active
                 {% endif %}
+            </p>
+
+        </div>
+
+        <div class="poll-info">
+
+            <h3 class="section-title">Share this poll</h3>
+
+            <p>
+                <label for="share-url"><strong>Link</strong></label><br>
+                <input
+                    id="share-url"
+                    type="text"
+                    readonly
+                    size="50"
+                    value="{{ share_url }}"
+                >
+            </p>
+
+            <p>
+                <label for="embed-code"><strong>Embed on a website</strong></label><br>
+                <textarea
+                    id="embed-code"
+                    readonly
+                    rows="3"
+                    cols="50"
+                >{{ embed_code }}</textarea>
             </p>
 
         </div>

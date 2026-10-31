@@ -243,3 +243,43 @@ class EmbedTests(TestCase):
 
         with override_settings(DEBUG=True):
             self.assertEqual(self.client.get(url).status_code, 200)
+
+
+class NavigationAndSharingTests(TestCase):
+
+    def setUp(self):
+        self.owner = make_user('owner')
+        self.poll = make_poll(self.owner)
+        self.detail = reverse('polls:poll_detail', args=[self.poll.slug])
+
+    def test_detail_links_to_live_results(self):
+        response = self.client.get(self.detail)
+
+        self.assertContains(
+            response, reverse('results:poll_results', args=[self.poll.slug])
+        )
+
+    def test_detail_shows_share_link_and_embed_code(self):
+        response = self.client.get(self.detail)
+
+        self.assertContains(response, f'http://testserver{self.detail}')
+        embed_path = reverse('polls:poll_embed', args=[self.poll.slug])
+        # The iframe snippet is shown as escaped text, ready to copy.
+        self.assertContains(response, '&lt;iframe src=&quot;http://testserver' + embed_path)
+
+    def test_list_links_to_results_and_login_for_visitors(self):
+        response = self.client.get(reverse('polls:poll_list'))
+
+        self.assertContains(response, reverse('accounts:login'))
+        self.assertContains(response, reverse('accounts:register'))
+        self.assertContains(
+            response, reverse('results:poll_results', args=[self.poll.slug])
+        )
+        self.assertNotContains(response, reverse('polls:poll_create'))
+
+    def test_list_offers_create_poll_when_logged_in(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('polls:poll_list'))
+
+        self.assertContains(response, reverse('polls:poll_create'))
