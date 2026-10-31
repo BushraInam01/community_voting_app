@@ -1,4 +1,5 @@
 
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
 
     <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
 
-    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="{% static 'js/htmx.min.js' %}"></script>
 </head>
 <body>
 
