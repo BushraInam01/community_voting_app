@@ -6,14 +6,15 @@ A Django-based Community Voting & Polling Application that allows users to creat
 ## Features
 
 - Create polls with multiple-choice or ranked voting.
+- Ranked polls are tallied with instant-runoff voting (round-by-round view).
 - Support anonymous and authenticated voting.
 - Prevent duplicate votes using database constraints.
-- Automatically generate unique poll slugs.
-- Display live poll results using HTMX.
-- Automatically freeze polls after their expiry date.
-- Embed polls using an iframe-safe view.
+- Automatically generate unique, readable poll slugs (non-Latin titles are transliterated; names that would clash with fixed routes are avoided).
+- Display live poll results using HTMX (self-hosted, no third-party scripts).
+- Polls stop accepting votes at their expiry date; creators can also close a poll early.
+- Embed polls read-only in an iframe on other sites (`/polls/embed/<slug>/`).
 - Generate anonymous voter tokens using Django signing.
-- Custom template tags for percentage calculations.
+- Rate limiting for anonymous votes and login attempts.
 - Content Security Policy (CSP) enforcement.
 
 ## Technologies Used
@@ -23,7 +24,7 @@ A Django-based Community Voting & Polling Application that allows users to creat
 - SQLite
 - HTML and CSS
 - HTMX
-- django-autoslug
+- django-autoslug (with Unidecode for transliteration)
 
 ## Project Setup
 
@@ -54,15 +55,15 @@ pip install -r requirements.txt
 
 ### 5. Configure environment variables
 
-Create a `.env` file in the project root:
+Copy the example file and edit it:
 
-```env
-DJANGO_SECRET_KEY=your-secret-key
-DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
+```bash
+cp .env.example .env
 ```
 
-Generate a new secret key for your own environment. Never commit your `.env` file.
+At minimum set `DJANGO_SECRET_KEY`, `DEBUG` and `ALLOWED_HOSTS`. Generate a new secret key for your own environment. Never commit your `.env` file. `.env.example` documents every optional setting (time zone, embed origins, rate limits, HTTPS/email options).
+
+`TIME_ZONE` controls how the expiry time typed into the create-poll form is interpreted (the form displays the zone). It defaults to `UTC`; set it to e.g. `Asia/Karachi` for local times.
 
 ### 6. Apply migrations
 
@@ -88,7 +89,7 @@ Run the voting tests:
 python3 manage.py test voting
 ```
 
-These tests verify database-level duplicate-voting and ranked-voting constraints.
+The suite covers the database constraints, the voting flows (named, anonymous and ranked), instant-runoff tallying, results, poll creation/closing, the embed headers, slug generation, registration and login lockout. The same tests run in GitHub Actions on every push.
 
 Run all project tests:
 
@@ -116,7 +117,15 @@ For realistic row-level locking and concurrency testing, PostgreSQL is recommend
 - Anonymous voter tokens are signed using Django's signing framework.
 - Duplicate voting is restricted through database constraints.
 - Poll expiry and frozen status are checked before accepting votes.
-- Content Security Policy is enforced.
+- Content Security Policy is enforced. All scripts (including htmx) are served from this site; only the embed view relaxes `frame-ancestors` (see `EMBED_FRAME_ANCESTORS`).
+- Session and CSRF cookies are `Secure` when `DEBUG=False`; HTTPS redirect and HSTS are configurable (run `python manage.py check --deploy` before deploying).
+- Failed logins are throttled per IP + username.
+
+### Known limitation: anonymous voting
+
+An anonymous voter is identified by a signed cookie, which identifies a *browser*, not a *person*. Clearing cookies or using a private window yields a new identity, so anonymous polls cannot guarantee one vote per person. As a mitigation, anonymous votes are limited per poll per network address (`ANONYMOUS_VOTES_PER_IP`, default 10 per day). This slows ballot stuffing but is not a guarantee, and it can affect many legitimate voters behind one shared address (offices, campuses, mobile carriers), so tune it to your audience. If one-person-one-vote matters, create the poll with anonymous voting turned off so that login is required.
+
+Rate-limit counters use Django's cache. The default per-process memory cache is fine for development; use a shared cache (e.g. Redis) when running several workers. Clients are identified by `REMOTE_ADDR`, so behind a reverse proxy make sure the proxy/WSGI server passes the real client address.
 
 ## License
 
