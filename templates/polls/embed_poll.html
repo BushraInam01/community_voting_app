@@ -1,11 +1,9 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ poll.question }}</title>
-    <link rel="stylesheet" href="{% static 'css/embed.css' %}">
 </head>
 <body>
 
@@ -37,8 +35,6 @@
             </a>
         </p>
     {% endif %}
-
-    <script src="{% static 'js/embed-resize.js' %}"></script>
 
 </body>
 </html>

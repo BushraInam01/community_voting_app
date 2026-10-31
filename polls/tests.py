@@ -283,37 +283,3 @@ class NavigationAndSharingTests(TestCase):
         response = self.client.get(reverse('polls:poll_list'))
 
         self.assertContains(response, reverse('polls:poll_create'))
-
-
-class EmbedResizeTests(TestCase):
-
-    def setUp(self):
-        self.poll = make_poll(make_user())
-
-    def test_embed_page_uses_compact_css_and_reports_its_height(self):
-        response = self.client.get(
-            reverse('polls:poll_embed', args=[self.poll.slug])
-        )
-
-        self.assertContains(response, '/static/css/embed.css')
-        self.assertContains(response, '/static/js/embed-resize.js')
-
-    def test_embed_test_page_listens_for_height(self):
-        with override_settings(DEBUG=True):
-            response = self.client.get(reverse('polls:embed_test'))
-
-        self.assertContains(response, '/static/js/embed-parent.js')
-        self.assertNotContains(response, 'height="300"')
-
-    def test_share_snippet_includes_resize_script(self):
-        response = self.client.get(
-            reverse('polls:poll_detail', args=[self.poll.slug])
-        )
-
-        self.assertContains(response, 'embed-parent.js')
-
-    def test_static_files_exist(self):
-        from django.contrib.staticfiles import finders
-
-        for path in ('css/embed.css', 'js/embed-resize.js', 'js/embed-parent.js'):
-            self.assertIsNotNone(finders.find(path), path)
