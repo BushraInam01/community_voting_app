@@ -1,29 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Poll Results</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}All Poll Results{% endblock %}
+
+{% block content %}
 
     <h1>All Poll Results</h1>
 
     {% for poll in polls %}
 
-        <div>
-            <h2>{{ poll.question }}</h2>
+        <div class="card">
+            <h3>{{ poll.question }}</h3>
 
-            <p>
-                Voting Type: {{ poll.get_voting_type_display }}
-            </p>
+            <p class="muted">{{ poll.get_voting_type_display }}</p>
 
             <a href="{% url 'results:poll_results' poll.slug %}">
                 View Results
             </a>
         </div>
-
-        <hr>
 
     {% empty %}
 
@@ -33,5 +26,4 @@
 
     {% include 'partials/pagination.html' %}
 
-</body>
-</html>
+{% endblock %}

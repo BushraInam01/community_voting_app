@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from config.testing import make_poll, make_user
+from common.factories import make_poll, make_user
 from .models import Poll
 
 
@@ -349,3 +349,150 @@ class EmbedHeightTests(TestCase):
 
         self.assertContains(response, '/static/css/embed.css')
         self.assertNotContains(response, '<script')
+
+
+class OptionValidationTests(TestCase):
+    """Options must be different, and a poll may have at most 10."""
+
+    def setUp(self):
+        self.user = make_user()
+        self.client.force_login(self.user)
+        self.url = reverse('polls:poll_create')
+
+    def payload(self, options):
+        data = {
+            'question': 'Best editor?',
+            'description': '',
+            'voting_type': 'multiple_choice',
+            'expires_at': (timezone.now() + timedelta(days=2)).strftime(
+                '%Y-%m-%dT%H:%M'
+            ),
+            'options-TOTAL_FORMS': str(len(options)),
+            'options-INITIAL_FORMS': '0',
+            'options-MIN_NUM_FORMS': '2',
+            'options-MAX_NUM_FORMS': '10',
+        }
+        for index, text in enumerate(options):
+            data[f'options-{index}-option_text'] = text
+        return data
+
+    def test_repeated_options_are_rejected_ignoring_case_and_spaces(self):
+        response = self.client.post(self.url, self.payload(['Yes', 'Yes', 'yes']))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Each option must be different')
+        self.assertEqual(Poll.objects.count(), 0)
+
+        response = self.client.post(self.url, self.payload(['Vim', ' VIM ']))
+
+        self.assertEqual(Poll.objects.count(), 0)
+
+    def test_blank_extra_options_are_not_counted_as_duplicates(self):
+        response = self.client.post(
+            self.url, self.payload(['Vim', 'Emacs', '', '', ''])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Poll.objects.get().options.count(), 2)
+
+    def test_ten_options_are_allowed(self):
+        response = self.client.post(
+            self.url, self.payload([f'Option {i}' for i in range(10)])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Poll.objects.get().options.count(), 10)
+
+    def test_more_than_ten_options_are_rejected(self):
+        response = self.client.post(
+            self.url, self.payload([f'Option {i}' for i in range(11)])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Poll.objects.count(), 0)
+
+    def test_absurd_number_of_forms_is_rejected_without_creating_anything(self):
+        response = self.client.post(
+            self.url, self.payload([f'Option {i}' for i in range(300)])
+        )
+
+        self.assertIn(response.status_code, (200, 400))
+        self.assertEqual(Poll.objects.count(), 0)
+
+
+class SharedLayoutTests(TestCase):
+    """Every page uses base.html: lang, viewport, navigation, messages."""
+
+    def setUp(self):
+        self.user = make_user()
+        self.poll = make_poll(self.user)
+
+    def pages(self):
+        return [
+            reverse('home'),
+            reverse('polls:poll_list'),
+            reverse('polls:poll_detail', args=[self.poll.slug]),
+            reverse('results:results_list'),
+            reverse('results:poll_results', args=[self.poll.slug]),
+            reverse('accounts:login'),
+            reverse('accounts:register'),
+        ]
+
+    def test_every_page_has_lang_viewport_and_stylesheet(self):
+        for url in self.pages():
+            response = self.client.get(url)
+
+            self.assertContains(response, '<html lang="en">', msg_prefix=url)
+            self.assertContains(response, 'name="viewport"', msg_prefix=url)
+            self.assertContains(response, '/static/css/base.css', msg_prefix=url)
+
+    def test_home_is_the_public_poll_list(self):
+        response = self.client.get(reverse('home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.poll.question)
+
+    def test_navigation_for_visitors_and_logged_in_users(self):
+        visitor = self.client.get(reverse('home'))
+
+        self.assertContains(visitor, reverse('accounts:login'))
+        self.assertContains(visitor, reverse('accounts:register'))
+        self.assertNotContains(visitor, 'Logout')
+
+        self.client.force_login(self.user)
+        member = self.client.get(reverse('home'))
+
+        self.assertContains(member, f'Logout ({self.user.username})')
+        self.assertContains(member, reverse('polls:poll_create'))
+        self.assertNotContains(member, reverse('accounts:register'))
+
+    def test_messages_are_shown_once_in_the_shared_layout(self):
+        voter = make_user('voter')
+        self.client.force_login(voter)
+        option = self.poll.options.first()
+
+        response = self.client.post(
+            reverse('voting:poll_vote', args=[self.poll.slug]),
+            {'option': option.id},
+            follow=True,
+        )
+
+        self.assertContains(response, 'Your vote has been submitted.', count=1)
+
+    def test_results_page_still_polls_and_disables_htmx_eval(self):
+        response = self.client.get(
+            reverse('results:poll_results', args=[self.poll.slug])
+        )
+
+        self.assertContains(response, 'hx-trigger="every 3s"')
+        self.assertContains(response, '"allowEval": false')
+
+    def test_no_inline_scripts_or_styles_anywhere(self):
+        import re
+
+        for url in self.pages():
+            html = self.client.get(url).content.decode()
+
+            self.assertNotRegex(html, r'<script(?![^>]*\bsrc=)', msg=url)
+            self.assertNotIn(' style="', html, msg=url)
+            self.assertIsNone(re.search(r'<style[\s>]', html), url)

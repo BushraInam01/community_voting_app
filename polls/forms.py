@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import inlineformset_factory
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.conf import settings
 from django.utils import timezone
 
@@ -77,12 +77,51 @@ class PollOptionForm(forms.ModelForm):
         }
 
 
+MAX_OPTIONS = 10
+
+
+class BasePollOptionFormSet(BaseInlineFormSet):
+    """Rejects repeated options ("Yes", "yes", " YES ") across the formset."""
+
+    def clean(self):
+        super().clean()
+
+        # Let each form show its own errors first.
+        if any(self.errors):
+            return
+
+        seen = set()
+
+        for form in self.forms:
+            if not hasattr(form, 'cleaned_data') or form.cleaned_data.get('DELETE'):
+                continue
+
+            text = (form.cleaned_data.get('option_text') or '').strip()
+
+            if not text:
+                continue
+
+            key = text.casefold()
+
+            if key in seen:
+                raise forms.ValidationError(
+                    f'Each option must be different. "{text}" is repeated.'
+                )
+
+            seen.add(key)
+
+
 PollOptionFormSet = inlineformset_factory(
     Poll,
     PollOption,
     form=PollOptionForm,
+    formset=BasePollOptionFormSet,
     extra=4,
     min_num=2,
+    max_num=MAX_OPTIONS,
     validate_min=True,
+    validate_max=True,
+    # Refuse absurd TOTAL_FORMS values early instead of validating them all.
+    absolute_max=MAX_OPTIONS + 10,
     can_delete=False,
 )

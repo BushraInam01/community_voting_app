@@ -1,55 +1,18 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'base.html' %}
 
-    <title>{{ poll.question }}</title>
+{% block title %}{{ poll.question }}{% endblock %}
 
-    <link rel="stylesheet" href="{% static 'css/poll_detail.css' %}">
-</head>
+{% block content %}
 
-<body>
-
-    <div class="poll-container">
-
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
+    <div class="card">
 
         <h1>{{ poll.question }}</h1>
 
-        <p class="description">
-            {{ poll.description }}
-        </p>
+        {% if poll.description %}
+            <p class="description">{{ poll.description }}</p>
+        {% endif %}
 
         <h3 class="section-title">Poll Options</h3>
-
-        {% if poll.is_expired or poll.is_frozen %}
-            <p>This poll is closed.</p>
-        {% else %}
-            <a href="{% url 'voting:poll_vote' poll.slug %}">
-                Vote Now
-            </a>
-        {% endif %}
-
-        <p>
-            <a href="{% url 'results:poll_results' poll.slug %}">
-                View live results
-            </a>
-        </p>
-
-        {% if can_close %}
-            <form method="POST" action="{% url 'polls:poll_close' poll.slug %}">
-                {% csrf_token %}
-                <button type="submit">Close this poll</button>
-            </form>
-        {% endif %}
 
         <ul class="options-list">
 
@@ -69,6 +32,27 @@
             {% endfor %}
 
         </ul>
+
+        <div class="actions">
+            {% if poll.is_expired or poll.is_frozen %}
+                <span>This poll is closed.</span>
+            {% else %}
+                <a class="button" href="{% url 'voting:poll_vote' poll.slug %}">
+                    Vote Now
+                </a>
+            {% endif %}
+
+            <a href="{% url 'results:poll_results' poll.slug %}">
+                View live results
+            </a>
+
+            {% if can_close %}
+                <form method="POST" action="{% url 'polls:poll_close' poll.slug %}">
+                    {% csrf_token %}
+                    <button type="submit" class="button-secondary">Close this poll</button>
+                </form>
+            {% endif %}
+        </div>
 
         <div class="poll-info">
 
@@ -110,33 +94,30 @@
             <h3 class="section-title">Share this poll</h3>
 
             <p>
-                <label for="share-url"><strong>Link</strong></label><br>
+                <label for="share-url">Link</label><br>
                 <input
                     id="share-url"
                     type="text"
                     readonly
-                    size="50"
                     value="{{ share_url }}"
                 >
             </p>
 
             <p>
-                <label for="embed-code"><strong>Embed on a website</strong></label><br>
+                <label for="embed-code">Embed on a website</label><br>
                 <textarea
                     id="embed-code"
                     readonly
                     rows="3"
-                    cols="50"
                 >{{ embed_code }}</textarea>
             </p>
 
         </div>
 
-        <a class="back-link" href="{% url 'polls:poll_list' %}">
-            &larr; Back to Polls
-        </a>
-
     </div>
 
-</body>
-</html>
+    <a class="back-link" href="{% url 'polls:poll_list' %}">
+        &larr; Back to Polls
+    </a>
+
+{% endblock %}

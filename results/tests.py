@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.test import TestCase
 from django.urls import reverse
 
-from config.testing import make_poll, make_user
+from common.factories import make_poll, make_user
 from voting.models import RankedVote, Vote
 from .ranking import instant_runoff
 

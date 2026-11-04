@@ -1,22 +1,21 @@
-
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poll Results</title>
 
-    <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
+{% block title %}Results: {{ poll.question }}{% endblock %}
+
+{% block extra_head %}
+    <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false}'>
 
     <script src="{% static 'js/htmx.min.js' %}"></script>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 
     <h1>{{ poll.question }}</h1>
 
     <div
         id="live-results"
+        class="card"
         hx-get="{% url 'results:poll_results' poll.slug %}"
         hx-trigger="{% if is_live %}every 3s{% else %}none{% endif %}"
         hx-swap="innerHTML"
@@ -24,15 +23,10 @@
         {% include 'results/partials/live_results.html' %}
     </div>
 
-    <div>
-        <a href="{% url 'polls:poll_detail' poll.slug %}">
-            ← Back to Poll
-        </a>
-        |
-        <a href="{% url 'results:results_list' %}">
-            ← All Results
-        </a>
-    </div>
+    <p>
+        <a href="{% url 'polls:poll_detail' poll.slug %}">&larr; Back to Poll</a>
+        &nbsp;|&nbsp;
+        <a href="{% url 'results:results_list' %}">&larr; All Results</a>
+    </p>
 
-</body>
-</html>
+{% endblock %}

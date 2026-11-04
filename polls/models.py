@@ -50,6 +50,10 @@ class Poll(models.Model):
         return timezone.now() >= self.expires_at
 
     @property
+    def has_votes(self):
+        return self.votes.exists() or self.ranked_votes.exists()
+
+    @property
     def is_closed(self):
         return self.is_frozen or self.is_expired
 

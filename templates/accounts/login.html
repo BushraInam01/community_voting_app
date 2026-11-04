@@ -1,22 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'base.html' %}
 
-    <title>Login</title>
-</head>
-<body>
+{% block title %}Login{% endblock %}
+
+{% block content %}
 
     <h1>Login to Your Account</h1>
 
-    {% if messages %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-    {% endif %}
-
-    <form method="POST">
+    <form method="POST" class="card">
 
         {% csrf_token %}
 
@@ -34,10 +24,7 @@
 
     <p>
         Don't have an account?
-        <a href="{% url 'accounts:register' %}">
-            Register here
-        </a>
+        <a href="{% url 'accounts:register' %}">Register here</a>
     </p>
 
-</body>
-</html>
+{% endblock %}

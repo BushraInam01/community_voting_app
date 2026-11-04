@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Poll</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Create Poll{% endblock %}
+
+{% block content %}
 
     <h1>Create a Poll</h1>
 
-    <form method="POST">
+    <form method="POST" class="card">
         {% csrf_token %}
 
         <h2>Poll Details</h2>
@@ -18,7 +15,11 @@
 
         <h2>Poll Options</h2>
 
+        <p class="muted">Between 2 and 10 options. Every option must be different.</p>
+
         {{ option_formset.management_form }}
+
+        {{ option_formset.non_form_errors }}
 
         {% for form in option_formset %}
             <div>
@@ -30,9 +31,6 @@
 
     </form>
 
-    <p>
-        <a href="{% url 'polls:poll_list' %}">Back to Polls</a>
-    </p>
+    <a class="back-link" href="{% url 'polls:poll_list' %}">&larr; Back to Polls</a>
 
-</body>
-</html>
+{% endblock %}

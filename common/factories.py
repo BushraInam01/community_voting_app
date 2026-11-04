@@ -1,4 +1,4 @@
-"""Small factories shared by the test suites."""
+"""Small factories shared by the test suites (not part of the running site)."""
 
 from datetime import timedelta
 

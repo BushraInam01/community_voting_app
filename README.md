@@ -14,19 +14,23 @@ A Django-based Community Voting & Polling Application that allows users to creat
 - Polls stop accepting votes at their expiry date; creators can also close a poll early.
 - Embed polls read-only in an iframe on other sites (`/polls/embed/<slug>/`).
 - Generate anonymous voter tokens using Django signing.
-- Rate limiting for anonymous votes and login attempts.
+- Rate limiting for anonymous votes and login attempts (per IP + username, per IP, and per username).
+- Polls need 2 to 10 different options (duplicates such as "Yes" / "yes" are rejected).
+- Votes are protected in the admin: options cannot be added, edited or deleted, and the voting mode cannot be changed, once a poll has votes.
 - Content Security Policy (CSP) enforcement.
 
 ## Technologies Used
 
-- Python
-- Django
+- Python **3.12 or newer** (required by Django 6.1)
+- Django 6.1
 - SQLite
 - HTML and CSS
 - HTMX
 - django-autoslug (with Unidecode for transliteration)
 
 ## Project Setup
+
+**Requirements:** Python 3.12+ (check with `python3 --version`). On older Python versions `pip install -r requirements.txt` fails with a confusing "no matching distribution found" error, because Django 6.1 does not support them.
 
 ### 1. Clone the repository
 
@@ -119,7 +123,7 @@ For realistic row-level locking and concurrency testing, PostgreSQL is recommend
 - Poll expiry and frozen status are checked before accepting votes.
 - Content Security Policy is enforced. All scripts (including htmx) are served from this site; only the embed view relaxes `frame-ancestors` (see `EMBED_FRAME_ANCESTORS`).
 - Session and CSRF cookies are `Secure` when `DEBUG=False`; HTTPS redirect and HSTS are configurable (run `python manage.py check --deploy` before deploying).
-- Failed logins are throttled per IP + username.
+- Failed logins are throttled three ways: per IP + username (5 failures, 15-minute lockout), per IP (50 failures per hour) and per username (30 failures per hour). The per-username limit is deliberately loose, because someone could use it to temporarily lock another person's account.
 
 ### Known limitation: anonymous voting
 

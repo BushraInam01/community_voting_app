@@ -15,7 +15,7 @@ class Vote(models.Model):
 
     option = models.ForeignKey(
         PollOption,
-        on_delete=models.CASCADE,
+        on_delete=models.RESTRICT,
         related_name='votes'
     )
 
@@ -63,7 +63,7 @@ class RankedVote(models.Model):
 
     option = models.ForeignKey(
         PollOption,
-        on_delete=models.CASCADE,
+        on_delete=models.RESTRICT,
         related_name='ranked_votes'
     )
 

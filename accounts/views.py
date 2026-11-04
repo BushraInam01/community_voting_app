@@ -1,13 +1,11 @@
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.urls import reverse
 from django.contrib.auth import logout
 
 from .forms import RegistrationForm
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
-from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from . import throttle
@@ -38,7 +36,7 @@ class RegisterView(View):
 
         if form.is_valid():
 
-            user = form.save()
+            form.save()
 
             messages.success(
                 request,

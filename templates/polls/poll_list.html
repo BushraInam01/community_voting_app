@@ -1,49 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>All Polls</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-    <h1>Community Voting & Polling App</h1>
+{% block title %}All Polls{% endblock %}
 
-    <nav>
-        {% if user.is_authenticated %}
-            <a href="{% url 'polls:poll_create' %}">Create a poll</a> |
-            <a href="{% url 'results:results_list' %}">All results</a>
-        {% else %}
-            <a href="{% url 'accounts:login' %}">Login</a> |
-            <a href="{% url 'accounts:register' %}">Register</a> |
-            <a href="{% url 'results:results_list' %}">All results</a>
-        {% endif %}
-    </nav>
+{% block content %}
 
-    <h2>All Polls</h2>
+    <h1>All Polls</h1>
 
     {% if polls %}
 
         {% for poll in polls %}
 
-            <div>
+            <div class="card">
                 <h3>
                     <a href="{% url 'polls:poll_detail' poll.slug %}">
                         {{ poll.question }}
                     </a>
                 </h3>
 
-                <p>{{ poll.description }}</p>
+                {% if poll.description %}
+                    <p>{{ poll.description }}</p>
+                {% endif %}
 
-                <p>Voting Type: {{ poll.get_voting_type_display }}</p>
-
-                <p>
-                    Created: {{ poll.created_at }}
+                <p class="muted">
+                    {{ poll.get_voting_type_display }}
+                    &middot; created {{ poll.created_at|date:"j M Y" }}
+                    {% if poll.is_closed %}&middot; closed{% endif %}
                 </p>
 
                 <p>
                     <a href="{% url 'results:poll_results' poll.slug %}">View results</a>
                 </p>
-
-                <hr>
             </div>
 
         {% endfor %}
@@ -56,16 +42,4 @@
 
     {% endif %}
 
-
-    {% if user.is_authenticated %}
-
-    <form method="POST" action="{% url 'accounts:logout' %}">
-        {% csrf_token %}
-
-        <button type="submit">Logout</button>
-    </form>
-
-    {% endif %}
-
-</body>
-</html>
+{% endblock %}

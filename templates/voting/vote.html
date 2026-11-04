@@ -1,31 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cast Your Vote</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Cast Your Vote{% endblock %}
+
+{% block content %}
 
     <h1>{{ poll.question }}</h1>
 
-    <p>{{ poll.description }}</p>
+    {% if poll.description %}
+        <p class="description">{{ poll.description }}</p>
+    {% endif %}
 
-    <h2>Cast Your Vote</h2>
-
-    <form method="POST">
+    <form method="POST" class="card">
         {% csrf_token %}
+
+        <h2>Cast Your Vote</h2>
 
         {{ form.as_p }}
 
         <button type="submit">Submit Vote</button>
     </form>
 
-    <p>
-        <a href="{% url 'polls:poll_detail' poll.slug %}">
-            Back to Poll
-        </a>
-    </p>
+    <a class="back-link" href="{% url 'polls:poll_detail' poll.slug %}">
+        &larr; Back to Poll
+    </a>
 
-</body>
-</html>
+{% endblock %}

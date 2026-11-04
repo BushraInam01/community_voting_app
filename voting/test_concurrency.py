@@ -17,7 +17,7 @@ from django.db import DatabaseError, connection, transaction
 from django.test import Client, TransactionTestCase
 from django.urls import reverse
 
-from config.testing import make_poll, make_user
+from common.factories import make_poll, make_user
 from polls.models import Poll
 from .models import RankedVote, Vote
 from . import views

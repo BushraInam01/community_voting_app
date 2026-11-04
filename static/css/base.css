@@ -1,0 +1,334 @@
+/* Shared styles for the whole site (no inline styles: the CSP forbids them). */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.55;
+    color: #1f2933;
+    background-color: #f4f6f9;
+}
+
+a {
+    color: #2563eb;
+}
+
+.container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ---- header / navigation ---- */
+
+.site-header {
+    background-color: #1f3a5f;
+    margin-bottom: 28px;
+}
+
+.header-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.brand {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-decoration: none;
+}
+
+.site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 18px;
+}
+
+.site-nav a,
+.link-button {
+    color: #d7e3f1;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.site-nav a:hover,
+.link-button:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.link-button {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+/* ---- headings and text ---- */
+
+h1 {
+    margin: 0 0 12px;
+    font-size: 1.7rem;
+    color: #1b2733;
+}
+
+h2 {
+    margin: 24px 0 10px;
+    font-size: 1.25rem;
+}
+
+h3 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+}
+
+.description {
+    color: #52606d;
+    margin-bottom: 20px;
+}
+
+.muted {
+    color: #6b7686;
+    font-size: 0.9rem;
+}
+
+/* ---- cards ---- */
+
+.card {
+    background-color: #fff;
+    border: 1px solid #e1e5eb;
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card h3 a {
+    text-decoration: none;
+}
+
+.card h3 a:hover {
+    text-decoration: underline;
+}
+
+.card > h2:first-child {
+    margin-top: 0;
+}
+
+.card p {
+    margin: 6px 0;
+}
+
+/* ---- messages ---- */
+
+.messages {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+}
+
+.message {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    background-color: #e8f4fd;
+    color: #124a7a;
+    border-left: 4px solid #3b82f6;
+}
+
+.message.success {
+    background-color: #e6f4ea;
+    color: #1e5c33;
+    border-left-color: #2e9e5b;
+}
+
+.message.error {
+    background-color: #fdecea;
+    color: #8a1f17;
+    border-left-color: #d64545;
+}
+
+.message.warning {
+    background-color: #fff4d6;
+    color: #7a5a00;
+    border-left-color: #e3b341;
+}
+
+/* ---- forms ---- */
+
+form p {
+    margin: 0 0 14px;
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="datetime-local"],
+select,
+textarea {
+    width: 100%;
+    max-width: 480px;
+    padding: 9px 11px;
+    font: inherit;
+    border: 1px solid #c4ccd6;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    margin-right: 6px;
+}
+
+.helptext {
+    display: block;
+    color: #6b7686;
+    font-size: 0.85rem;
+}
+
+.errorlist {
+    list-style: none;
+    margin: 4px 0;
+    padding: 0;
+    color: #b42318;
+    font-size: 0.9rem;
+}
+
+button,
+.button {
+    display: inline-block;
+    padding: 9px 18px;
+    font: inherit;
+    font-weight: 600;
+    color: #fff;
+    background-color: #2563eb;
+    border: 0;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button:hover,
+.button:hover {
+    background-color: #1d4fc4;
+}
+
+.link-button {
+    padding: 0;
+    background: none;
+    font-weight: 400;
+}
+
+.button-secondary {
+    background-color: #52606d;
+}
+
+.button-secondary:hover {
+    background-color: #3e4c59;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin: 16px 0;
+}
+
+.actions form {
+    margin: 0;
+}
+
+/* ---- poll detail ---- */
+
+.options-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.option-item {
+    background-color: #f7f8fa;
+    border: 1px solid #e1e5eb;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+}
+
+.option-number {
+    font-weight: 700;
+    margin-right: 8px;
+    color: #2563eb;
+}
+
+.poll-info {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid #eee;
+    color: #52606d;
+}
+
+.poll-info p {
+    margin: 4px 0;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 12px;
+}
+
+/* ---- results ---- */
+
+.result-row {
+    margin-bottom: 16px;
+}
+
+progress {
+    width: 100%;
+    height: 14px;
+    accent-color: #2563eb;
+}
+
+/* ---- pagination ---- */
+
+nav[aria-label="Pagination"] {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 20px 0;
+}
+
+/* ---- small screens ---- */
+
+@media (max-width: 520px) {
+    .card {
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+    }
+}

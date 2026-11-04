@@ -256,9 +256,19 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', Fals
 ANONYMOUS_VOTES_PER_IP = env_int('ANONYMOUS_VOTES_PER_IP', 10)
 ANONYMOUS_VOTE_WINDOW_SECONDS = env_int('ANONYMOUS_VOTE_WINDOW_SECONDS', 24 * 60 * 60)
 
-# Failed logins per (IP, username) before a temporary lockout.
+# Failed-login limits. Three counters are kept so that neither spreading
+# attempts over many usernames (one IP) nor over many IPs (one account) avoids
+# the limit:
+#   - per IP + username: LOGIN_MAX_FAILURES, locked for LOGIN_LOCKOUT_SECONDS
+#   - per IP:            LOGIN_MAX_FAILURES_PER_IP in LOGIN_FAILURE_WINDOW_SECONDS
+#   - per username:      LOGIN_MAX_FAILURES_PER_USERNAME in the same window
+# (the per-username limit is deliberately loose, because an attacker can use it
+# to temporarily lock someone else's account).
 LOGIN_MAX_FAILURES = env_int('LOGIN_MAX_FAILURES', 5)
 LOGIN_LOCKOUT_SECONDS = env_int('LOGIN_LOCKOUT_SECONDS', 15 * 60)
+LOGIN_MAX_FAILURES_PER_IP = env_int('LOGIN_MAX_FAILURES_PER_IP', 50)
+LOGIN_MAX_FAILURES_PER_USERNAME = env_int('LOGIN_MAX_FAILURES_PER_USERNAME', 30)
+LOGIN_FAILURE_WINDOW_SECONDS = env_int('LOGIN_FAILURE_WINDOW_SECONDS', 60 * 60)
 
 
 # Content Security Policy (enforced). htmx is self-hosted in static/js, so

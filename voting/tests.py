@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 
-from config.testing import make_poll, make_user
+from common.factories import make_poll, make_user
 from polls.models import Poll, PollOption
 from .models import Vote, RankedVote
 from .views import ANONYMOUS_COOKIE_NAME
@@ -326,3 +326,136 @@ class VoteViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(RankedVote.objects.count(), 0)
+
+
+class VoteProtectionTests(TestCase):
+    """Votes must not disappear or change meaning because of admin edits."""
+
+    def setUp(self):
+        self.owner = make_user('owner')
+        self.poll = make_poll(self.owner)
+        self.option = self.poll.options.first()
+        Vote.objects.create(poll=self.poll, option=self.option, voter_token='t1')
+
+    def test_deleting_an_option_that_has_votes_is_refused(self):
+        from django.db.models import RestrictedError
+
+        with self.assertRaises(RestrictedError):
+            self.option.delete()
+
+        self.assertEqual(Vote.objects.filter(poll=self.poll).count(), 1)
+
+    def test_deleting_an_option_with_ranked_votes_is_refused(self):
+        from django.db.models import RestrictedError
+
+        ranked = make_poll(
+            self.owner, question='Ranked one', voting_type='ranked'
+        )
+        first = ranked.options.first()
+        RankedVote.objects.create(
+            poll=ranked, option=first, voter_token='t2', rank=1
+        )
+
+        with self.assertRaises(RestrictedError):
+            first.delete()
+
+    def test_deleting_the_whole_poll_still_works(self):
+        self.poll.delete()
+
+        self.assertEqual(Vote.objects.count(), 0)
+        self.assertEqual(PollOption.objects.count(), 0)
+
+    def test_deleting_an_option_without_votes_is_fine(self):
+        unused = self.poll.options.last()
+
+        unused.delete()
+
+        self.assertEqual(self.poll.options.count(), 1)
+
+
+class AdminProtectionTests(TestCase):
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+
+        self.admin_user = User.objects.create_superuser(
+            'admin', 'a@example.com', 'AdminPass123!'
+        )
+        self.client.force_login(self.admin_user)
+        self.owner = make_user('owner')
+        self.poll = make_poll(self.owner)
+
+    def test_options_can_be_edited_until_votes_exist(self):
+        from django.contrib import admin
+        from polls.admin import PollOptionInline
+
+        inline = PollOptionInline(Poll, admin.site)
+
+        self.assertTrue(inline.has_add_permission(None, self.poll))
+        self.assertTrue(inline.has_delete_permission(None, self.poll))
+
+        Vote.objects.create(
+            poll=self.poll, option=self.poll.options.first(), voter_token='t1'
+        )
+
+        self.assertFalse(inline.has_add_permission(None, self.poll))
+        self.assertFalse(inline.has_change_permission(None, self.poll))
+        self.assertFalse(inline.has_delete_permission(None, self.poll))
+
+    def test_voting_mode_is_read_only_once_votes_exist(self):
+        from django.contrib import admin
+        from polls.admin import PollAdmin
+
+        poll_admin = PollAdmin(Poll, admin.site)
+
+        self.assertNotIn(
+            'voting_type', poll_admin.get_readonly_fields(None, self.poll)
+        )
+
+        Vote.objects.create(
+            poll=self.poll, option=self.poll.options.first(), voter_token='t1'
+        )
+
+        readonly = poll_admin.get_readonly_fields(None, self.poll)
+        self.assertIn('voting_type', readonly)
+        self.assertIn('is_anonymous', readonly)
+
+    def test_votes_are_listed_in_admin_but_cannot_be_added_or_edited(self):
+        from django.contrib import admin
+
+        vote = Vote.objects.create(
+            poll=self.poll, option=self.poll.options.first(), voter_token='t1'
+        )
+        vote_admin = admin.site._registry[Vote]
+        ranked_admin = admin.site._registry[RankedVote]
+
+        self.assertFalse(vote_admin.has_add_permission(None))
+        self.assertFalse(vote_admin.has_change_permission(None, vote))
+        self.assertFalse(ranked_admin.has_add_permission(None))
+
+        response = self.client.get(reverse('admin:voting_vote_changelist'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_pages_for_a_poll_with_votes_still_load(self):
+        Vote.objects.create(
+            poll=self.poll, option=self.poll.options.first(), voter_token='t1'
+        )
+
+        response = self.client.get(
+            reverse('admin:polls_poll_change', args=[self.poll.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_deleting_a_poll_with_votes_works_from_admin(self):
+        Vote.objects.create(
+            poll=self.poll, option=self.poll.options.first(), voter_token='t1'
+        )
+
+        response = self.client.post(
+            reverse('admin:polls_poll_delete', args=[self.poll.pk]),
+            {'post': 'yes'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Poll.objects.filter(pk=self.poll.pk).exists())
