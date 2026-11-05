@@ -19,8 +19,9 @@ from django.urls import reverse
 
 from common.factories import make_poll, make_user
 from polls.models import Poll
-from .models import RankedVote, Vote
+
 from . import views
+from .models import RankedVote, Vote
 from .views import ANONYMOUS_COOKIE_NAME, ANONYMOUS_TOKEN_SALT
 
 WORKERS = 8

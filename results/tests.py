@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from common.factories import make_poll, make_user
 from voting.models import RankedVote, Vote
+
 from .ranking import instant_runoff
 
 

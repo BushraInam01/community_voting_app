@@ -1,14 +1,12 @@
-from django.views import View
-from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import logout
-
-from .forms import RegistrationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views import View
 
 from . import throttle
+from .forms import RegistrationForm
 
 
 #Register view

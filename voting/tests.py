@@ -1,15 +1,16 @@
 from datetime import timedelta
 
-from django.test import TestCase, override_settings
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.contrib.auth.models import User
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from common.factories import make_poll, make_user
 from polls.models import Poll, PollOption
-from .models import Vote, RankedVote
+
+from .models import RankedVote, Vote
 from .views import ANONYMOUS_COOKIE_NAME
 
 
@@ -387,6 +388,7 @@ class AdminProtectionTests(TestCase):
 
     def test_options_can_be_edited_until_votes_exist(self):
         from django.contrib import admin
+
         from polls.admin import PollOptionInline
 
         inline = PollOptionInline(Poll, admin.site)
@@ -404,6 +406,7 @@ class AdminProtectionTests(TestCase):
 
     def test_voting_mode_is_read_only_once_votes_exist(self):
         from django.contrib import admin
+
         from polls.admin import PollAdmin
 
         poll_admin = PollAdmin(Poll, admin.site)

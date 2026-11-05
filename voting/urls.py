@@ -1,4 +1,5 @@
 from django.urls import path
+
 from .views import PollVoteView
 
 app_name = 'voting'

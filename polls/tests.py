@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from common.factories import make_poll, make_user
+
 from .models import Poll
 
 
@@ -533,7 +534,7 @@ class OptionBoxRulesTests(TestCase):
         self.assertEqual(Poll.objects.count(), 0)
 
     def test_tabs_and_newlines_count_as_spaces_too(self):
-        response = self.client.post(
+        self.client.post(
             self.url, self.payload(['Yes please', 'yes\tplease'])
         )
 

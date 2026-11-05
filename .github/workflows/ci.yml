@@ -18,8 +18,8 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt ruff
-      - name: Lint (unused imports and variables, syntax errors)
-        run: ruff check --select F,E7,E9 .
+      - name: Lint (see ruff.toml: unused code, syntax errors, import order)
+        run: ruff check .
       - name: Check for missing migrations
         run: python manage.py makemigrations --check --dry-run
       - name: Run tests

@@ -1,17 +1,17 @@
 import uuid
 
-from django.views import View
-from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core import signing
-from django.db import transaction, IntegrityError
+from django.db import IntegrityError, transaction
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views import View
 
 from polls.models import Poll
-from . import throttle
-from .models import Vote, RankedVote
-from .forms import MultipleChoiceVoteForm, RankedVoteForm
 
+from . import throttle
+from .forms import MultipleChoiceVoteForm, RankedVoteForm
+from .models import RankedVote, Vote
 
 ANONYMOUS_COOKIE_NAME = 'anonymous_voter_token'
 ANONYMOUS_TOKEN_SALT = 'voting.anonymous.voter'

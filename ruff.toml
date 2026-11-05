@@ -1,0 +1,10 @@
+# Lint rules used locally and in CI (.github/workflows/ci.yml).
+#   F   pyflakes: unused imports and variables, undefined names
+#   E7  statement style errors (e.g. comparison to None/True)
+#   E9  syntax and runtime errors
+#   I   isort: sorted, grouped imports
+[lint]
+select = ["F", "E7", "E9", "I"]
+
+[lint.isort]
+known-first-party = ["accounts", "common", "config", "polls", "results", "voting"]

@@ -85,6 +85,15 @@ Open the application at:
 
 http://127.0.0.1:8000/
 
+## Linting
+
+Style rules live in `ruff.toml` (unused code, syntax errors, import order) and are checked by CI:
+
+```bash
+pip install ruff
+ruff check .          # add --fix to sort imports automatically
+```
+
 ## Running Tests
 
 Run the voting tests:

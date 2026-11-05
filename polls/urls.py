@@ -1,11 +1,12 @@
 from django.urls import path
+
 from .views import (
-    PollListView,
-    PollDetailView,
-    PollCreateView,
     PollCloseView,
-    PollEmbedView,
+    PollCreateView,
+    PollDetailView,
     PollEmbedTestView,
+    PollEmbedView,
+    PollListView,
 )
 
 app_name = 'polls'

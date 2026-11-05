@@ -9,10 +9,9 @@ import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.csp import CSP
-
+from dotenv import load_dotenv
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent

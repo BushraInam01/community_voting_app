@@ -1,6 +1,6 @@
 from django import forms
-from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.conf import settings
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.utils import timezone
 
 from .models import Poll, PollOption
