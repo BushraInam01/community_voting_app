@@ -459,3 +459,64 @@ class AdminProtectionTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Poll.objects.filter(pk=self.poll.pk).exists())
+
+
+class AccountDeletionRuleTests(TestCase):
+    """Documented in the README: deleting an account deletes its own data."""
+
+    def setUp(self):
+        self.owner = make_user('owner')
+        self.alice = make_user('alice')
+        self.bob = make_user('bob')
+
+    def test_deleting_a_voter_removes_only_that_voters_votes(self):
+        poll = make_poll(self.owner)
+        option = poll.options.first()
+        Vote.objects.create(poll=poll, option=option, user=self.alice)
+        Vote.objects.create(poll=poll, option=option, user=self.bob)
+        Vote.objects.create(poll=poll, option=option, voter_token='anon-1')
+
+        self.alice.delete()
+
+        remaining = Vote.objects.filter(poll=poll)
+        self.assertEqual(remaining.count(), 2)
+        self.assertFalse(remaining.filter(user__username='alice').exists())
+        self.assertTrue(remaining.filter(voter_token='anon-1').exists())
+
+    def test_deleting_a_voter_removes_their_whole_ranked_ballot(self):
+        poll = make_poll(self.owner, voting_type='ranked')
+        a, b = poll.options.all()
+        for voter in (self.alice, self.bob):
+            RankedVote.objects.create(poll=poll, option=a, user=voter, rank=1)
+            RankedVote.objects.create(poll=poll, option=b, user=voter, rank=2)
+
+        self.alice.delete()
+
+        self.assertEqual(RankedVote.objects.filter(poll=poll).count(), 2)
+        self.assertEqual(
+            set(RankedVote.objects.values_list('user__username', flat=True)),
+            {'bob'},
+        )
+
+    def test_deleting_a_poll_creator_removes_their_polls_and_votes(self):
+        poll = make_poll(self.owner)
+        Vote.objects.create(
+            poll=poll, option=poll.options.first(), user=self.alice
+        )
+        other = make_poll(self.alice, question='Alice poll')
+
+        self.owner.delete()
+
+        self.assertFalse(Poll.objects.filter(pk=poll.pk).exists())
+        self.assertEqual(Vote.objects.count(), 0)
+        self.assertTrue(Poll.objects.filter(pk=other.pk).exists())
+
+    def test_deleting_an_account_never_touches_anonymous_polls(self):
+        poll = make_poll(self.owner, anonymous=True)
+        Vote.objects.create(
+            poll=poll, option=poll.options.first(), voter_token='anon-1'
+        )
+
+        self.alice.delete()
+
+        self.assertEqual(Vote.objects.filter(poll=poll).count(), 1)

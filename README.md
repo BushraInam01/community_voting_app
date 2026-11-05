@@ -125,6 +125,19 @@ For realistic row-level locking and concurrency testing, PostgreSQL is recommend
 - Session and CSRF cookies are `Secure` when `DEBUG=False`; HTTPS redirect and HSTS are configurable (run `python manage.py check --deploy` before deploying).
 - Failed logins are throttled three ways: per IP + username (5 failures, 15-minute lockout), per IP (50 failures per hour) and per username (30 failures per hour). The per-username limit is deliberately loose, because someone could use it to temporarily lock another person's account.
 
+### What happens when an account is deleted
+
+This is deliberate and covered by tests (`voting/tests.py`):
+
+- Deleting a **voter's account** also deletes the votes that account cast in named (non-anonymous) polls, so those polls' counts go down. Erasing an account erases that person's votes.
+- Deleting a **poll creator's account** deletes the polls they created, together with those polls' options and every vote on them.
+- **Anonymous votes** are not linked to any account, so they are never affected.
+- Deleting a single **option** that has votes is refused (`RESTRICT`), and deleting a whole poll still works.
+
+The Django admin lists every object that will be deleted before it asks for confirmation.
+
+Votes are deliberately *not* kept with `on_delete=SET_NULL`: a ranked ballot is made of several rows that are grouped by voter, so rows without a voter would be merged into one ballot and the instant-runoff count would be wrong.
+
 ### Known limitation: anonymous voting
 
 An anonymous voter is identified by a signed cookie, which identifies a *browser*, not a *person*. Clearing cookies or using a private window yields a new identity, so anonymous polls cannot guarantee one vote per person. As a mitigation, anonymous votes are limited per poll per network address (`ANONYMOUS_VOTES_PER_IP`, default 10 per day). This slows ballot stuffing but is not a guarantee, and it can affect many legitimate voters behind one shared address (offices, campuses, mobile carriers), so tune it to your audience. If one-person-one-vote matters, create the poll with anonymous voting turned off so that login is required.
