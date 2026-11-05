@@ -496,3 +496,82 @@ class SharedLayoutTests(TestCase):
             self.assertNotRegex(html, r'<script(?![^>]*\bsrc=)', msg=url)
             self.assertNotIn(' style="', html, msg=url)
             self.assertIsNone(re.search(r'<style[\s>]', html), url)
+
+
+class OptionBoxRulesTests(TestCase):
+    """Inner spaces count as one, and any two boxes may be filled."""
+
+    def setUp(self):
+        self.user = make_user()
+        self.client.force_login(self.user)
+        self.url = reverse('polls:poll_create')
+
+    def payload(self, options):
+        data = {
+            'question': 'Best editor?',
+            'description': '',
+            'voting_type': 'multiple_choice',
+            'expires_at': (timezone.now() + timedelta(days=2)).strftime(
+                '%Y-%m-%dT%H:%M'
+            ),
+            'options-TOTAL_FORMS': str(len(options)),
+            'options-INITIAL_FORMS': '0',
+            'options-MIN_NUM_FORMS': '0',
+            'options-MAX_NUM_FORMS': '10',
+        }
+        for index, text in enumerate(options):
+            data[f'options-{index}-option_text'] = text
+        return data
+
+    def test_inner_whitespace_does_not_hide_a_duplicate(self):
+        response = self.client.post(
+            self.url, self.payload(['Yes please', 'Yes  please'])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Each option must be different')
+        self.assertEqual(Poll.objects.count(), 0)
+
+    def test_tabs_and_newlines_count_as_spaces_too(self):
+        response = self.client.post(
+            self.url, self.payload(['Yes please', 'yes\tplease'])
+        )
+
+        self.assertEqual(Poll.objects.count(), 0)
+
+    def test_option_text_is_saved_with_single_spaces(self):
+        self.client.post(
+            self.url, self.payload(['  Yes    please  ', 'No thanks'])
+        )
+
+        texts = list(Poll.objects.get().options.values_list('option_text', flat=True))
+        self.assertEqual(texts, ['Yes please', 'No thanks'])
+
+    def test_any_two_boxes_may_be_filled(self):
+        # Boxes 1 and 3 filled, box 2 left empty: allowed.
+        response = self.client.post(
+            self.url, self.payload(['Vim', '', 'Emacs', '', '', ''])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Poll.objects.get().options.count(), 2)
+
+    def test_one_filled_box_is_not_enough(self):
+        response = self.client.post(
+            self.url, self.payload(['Vim', '', '', '', '', ''])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Please provide at least 2 options')
+        self.assertEqual(Poll.objects.count(), 0)
+
+    def test_no_filled_boxes_is_rejected(self):
+        response = self.client.post(self.url, self.payload([''] * 6))
+
+        self.assertContains(response, 'Please provide at least 2 options')
+        self.assertEqual(Poll.objects.count(), 0)
+
+    def test_form_shows_six_boxes(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context['option_formset'].forms), 6)

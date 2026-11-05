@@ -76,12 +76,22 @@ class PollOptionForm(forms.ModelForm):
             ),
         }
 
+    def clean_option_text(self):
+        # Trim and collapse inner whitespace: "Yes   please" -> "Yes please".
+        return ' '.join(self.cleaned_data['option_text'].split())
+
 
 MAX_OPTIONS = 10
+MIN_OPTIONS = 2
 
 
 class BasePollOptionFormSet(BaseInlineFormSet):
-    """Rejects repeated options ("Yes", "yes", " YES ") across the formset."""
+    """Checks the options as a group.
+
+    * at least MIN_OPTIONS boxes must be filled (any boxes, not just the first)
+    * options must be different ("Yes", "yes", " YES ", "Yes  please" and
+      "Yes please" are repeats)
+    """
 
     def clean(self):
         super().clean()
@@ -96,7 +106,8 @@ class BasePollOptionFormSet(BaseInlineFormSet):
             if not hasattr(form, 'cleaned_data') or form.cleaned_data.get('DELETE'):
                 continue
 
-            text = (form.cleaned_data.get('option_text') or '').strip()
+            # The form already trimmed and collapsed inner whitespace.
+            text = form.cleaned_data.get('option_text') or ''
 
             if not text:
                 continue
@@ -110,16 +121,21 @@ class BasePollOptionFormSet(BaseInlineFormSet):
 
             seen.add(key)
 
+        if len(seen) < MIN_OPTIONS:
+            raise forms.ValidationError(
+                f'Please provide at least {MIN_OPTIONS} options.'
+            )
+
 
 PollOptionFormSet = inlineformset_factory(
     Poll,
     PollOption,
     form=PollOptionForm,
     formset=BasePollOptionFormSet,
-    extra=4,
-    min_num=2,
+    # Six empty boxes; any two of them may be filled (see the formset clean()).
+    extra=6,
+    min_num=0,
     max_num=MAX_OPTIONS,
-    validate_min=True,
     validate_max=True,
     # Refuse absurd TOTAL_FORMS values early instead of validating them all.
     absolute_max=MAX_OPTIONS + 10,
