@@ -575,3 +575,46 @@ class OptionBoxRulesTests(TestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(len(response.context['option_formset'].forms), 6)
+
+
+class FaviconTests(TestCase):
+    """Pages declare an icon, so browsers do not request /favicon.ico (404)."""
+
+    def setUp(self):
+        self.poll = make_poll(make_user())
+
+    def test_regular_pages_link_to_the_favicon(self):
+        for url in (
+            reverse('home'),
+            reverse('polls:poll_detail', args=[self.poll.slug]),
+            reverse('results:poll_results', args=[self.poll.slug]),
+            reverse('accounts:login'),
+        ):
+            response = self.client.get(url)
+
+            self.assertContains(
+                response, '/static/img/favicon.svg', msg_prefix=url
+            )
+
+    def test_embed_page_links_to_the_favicon(self):
+        response = self.client.get(
+            reverse('polls:poll_embed', args=[self.poll.slug])
+        )
+
+        self.assertContains(response, '/static/img/favicon.svg')
+
+    def test_favicon_file_exists_and_is_valid_svg(self):
+        from xml.etree import ElementTree
+
+        from django.contrib.staticfiles import finders
+
+        path = finders.find('img/favicon.svg')
+
+        self.assertIsNotNone(path)
+        self.assertTrue(ElementTree.parse(path).getroot().tag.endswith('svg'))
+
+    def test_favicon_is_allowed_by_the_csp(self):
+        # img-src 'self' covers a same-origin icon; nothing needs relaxing.
+        response = self.client.get(reverse('home'))
+
+        self.assertIn("img-src 'self'", response.headers['Content-Security-Policy'])
